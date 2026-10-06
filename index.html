@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>JARVIS</title>
-<meta name="theme-color" content="#0a0714">
+<meta name="theme-color" content="#0a0805">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="JARVIS">
@@ -12,21 +12,24 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
 <style>
-  :root { --acento: #c58bff; --fundo: #0a0714; --cartao: rgba(255,255,255,.05); --borda: rgba(197,139,255,.25); }
+  /* Dourado = JARVIS normal; roxo = modo Mamba (vem em cada aviso do Mac). */
+  :root { --acento: #f2c865; --acento2: #ffe3a3; --brilho: rgba(242,200,101,.45); --fundo: #0a0805; --topo: #2a1d08; --cartao: rgba(255,255,255,.05); --borda: rgba(242,200,101,.25); --texto: #fff6e0; }
+  :root[data-tema="mamba"] { --acento: #c58bff; --acento2: #e0c2ff; --brilho: rgba(197,139,255,.45); --fundo: #0a0714; --topo: #1d1036; --borda: rgba(197,139,255,.25); --texto: #f3ecff; }
   * { box-sizing: border-box; }
-  body { margin: 0; min-height: 100vh; background: radial-gradient(circle at 50% 0%, #1d1036 0%, var(--fundo) 60%); color: #f3ecff;
+  body { margin: 0; min-height: 100vh; background: radial-gradient(circle at 50% 0%, var(--topo) 0%, var(--fundo) 60%); color: var(--texto); transition: background .6s, color .6s;
     font: 16px/1.45 -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
     padding: max(24px, env(safe-area-inset-top)) 18px max(24px, env(safe-area-inset-bottom)); }
   main { max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
   header { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 18px 0 6px; }
-  header img { width: 96px; height: 96px; border-radius: 50%; box-shadow: 0 0 40px rgba(197,139,255,.45); }
+  header img { width: 96px; height: 96px; border-radius: 24px; box-shadow: 0 0 40px var(--brilho); }
   h1 { margin: 0; font-size: 22px; letter-spacing: .32em; padding-left: .32em; font-weight: 600; }
   .sub { margin: 0; color: rgba(243,236,255,.6); font-size: 13px; letter-spacing: .08em; }
   section { background: var(--cartao); border: 1px solid var(--borda); border-radius: 18px; padding: 16px; }
   h2 { margin: 0 0 10px; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: var(--acento); font-weight: 600; }
   p { margin: 0 0 10px; }
   ol { margin: 0; padding-left: 20px; } li { margin-bottom: 6px; }
-  button { width: 100%; border: 0; border-radius: 14px; padding: 14px; font: inherit; font-weight: 600; color: #160b26; background: linear-gradient(180deg, #e0c2ff, var(--acento)); }
+  button { width: 100%; border: 0; border-radius: 14px; padding: 14px; font: inherit; font-weight: 600; color: #160b06; background: linear-gradient(180deg, var(--acento2), var(--acento)); }
+  .modo { text-align: center; font-size: 11px; letter-spacing: .3em; color: var(--acento); margin-top: -6px; }
   button:disabled { opacity: .5; }
   input { width: 100%; font: 600 26px/1 ui-monospace, Menlo, monospace; letter-spacing: .4em; text-align: center; padding: 16px; min-height: 60px; -webkit-user-select: text; user-select: text; border-radius: 14px;
     border: 1px solid var(--borda); background: rgba(0,0,0,.3); color: #fff; margin-bottom: 10px; }
@@ -43,6 +46,7 @@
     <img src="icon-192.png" alt="">
     <h1>JARVIS</h1>
     <p class="sub">avisos no seu iPhone, junto com o Mac</p>
+    <p class="modo" id="modo"></p>
   </header>
 
   <section id="instalar" hidden>
@@ -145,8 +149,23 @@
     if (instalado && !suporta) { $('instalar').hidden = false; $('instalar').querySelector('p').textContent = 'Este iPhone precisa do iOS 16.4 ou mais novo para receber notificações de web app.' }
   }
 
+  /** Tema do modo atual do JARVIS no Mac (o service worker guarda o último). */
+  async function aplicarTema() {
+    let tema = 'normal'
+    try {
+      const db = await new Promise((ok, falha) => { const r = indexedDB.open('jarvis', 1); r.onupgradeneeded = () => r.result.createObjectStore('avisos', { keyPath: 'id', autoIncrement: true }); r.onsuccess = () => ok(r.result); r.onerror = () => falha(r.error) })
+      const ultimo = await new Promise((ok) => { const q = db.transaction('avisos').objectStore('avisos').getAll(); q.onsuccess = () => ok((q.result || []).filter((a) => a.tema).pop()); q.onerror = () => ok(null) })
+      if (ultimo?.tema) tema = ultimo.tema
+    } catch { /* padrão dourado */ }
+    document.documentElement.dataset.tema = tema
+    document.querySelector('meta[name=theme-color]').content = tema === 'mamba' ? '#0a0714' : '#0a0805'
+    $('modo').textContent = tema === 'mamba' ? 'MODO MAMBA' : ''
+  }
+
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js')
-  navigator.serviceWorker?.addEventListener('message', historico)
+  navigator.serviceWorker?.addEventListener('message', () => { historico(); aplicarTema() })
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { historico(); aplicarTema() } })
+  aplicarTema()
   $('botao').addEventListener('click', ativar)
   // Um toque em qualquer lugar do cartão abre o teclado no campo do código.
   $('ativar').addEventListener('click', (e) => { if (e.target.tagName !== 'BUTTON') $('codigo').focus() })

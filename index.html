@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>JARVIS</title>
+<meta name="theme-color" content="#0a0714">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="JARVIS">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<style>
+  :root { --acento: #c58bff; --fundo: #0a0714; --cartao: rgba(255,255,255,.05); --borda: rgba(197,139,255,.25); }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; background: radial-gradient(circle at 50% 0%, #1d1036 0%, var(--fundo) 60%); color: #f3ecff;
+    font: 16px/1.45 -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+    padding: max(24px, env(safe-area-inset-top)) 18px max(24px, env(safe-area-inset-bottom)); }
+  main { max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+  header { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 18px 0 6px; }
+  header img { width: 96px; height: 96px; border-radius: 50%; box-shadow: 0 0 40px rgba(197,139,255,.45); }
+  h1 { margin: 0; font-size: 22px; letter-spacing: .32em; padding-left: .32em; font-weight: 600; }
+  .sub { margin: 0; color: rgba(243,236,255,.6); font-size: 13px; letter-spacing: .08em; }
+  section { background: var(--cartao); border: 1px solid var(--borda); border-radius: 18px; padding: 16px; }
+  h2 { margin: 0 0 10px; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: var(--acento); font-weight: 600; }
+  p { margin: 0 0 10px; }
+  ol { margin: 0; padding-left: 20px; } li { margin-bottom: 6px; }
+  button { width: 100%; border: 0; border-radius: 14px; padding: 14px; font: inherit; font-weight: 600; color: #160b26; background: linear-gradient(180deg, #e0c2ff, var(--acento)); }
+  button:disabled { opacity: .5; }
+  input { width: 100%; font: 600 26px/1 ui-monospace, Menlo, monospace; letter-spacing: .4em; text-align: center; padding: 14px; border-radius: 14px;
+    border: 1px solid var(--borda); background: rgba(0,0,0,.3); color: #fff; margin-bottom: 10px; }
+  .ok { color: #8be0a4; } .erro { color: #ff9d8c; }
+  .aviso { padding: 10px 0; border-top: 1px solid rgba(255,255,255,.07); }
+  .aviso:first-child { border-top: 0; }
+  .aviso b { display: block; font-weight: 600; } .aviso small { color: rgba(243,236,255,.5); }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <img src="icon-192.png" alt="">
+    <h1>JARVIS</h1>
+    <p class="sub">avisos no seu iPhone, junto com o Mac</p>
+  </header>
+
+  <section id="instalar" hidden>
+    <h2>Instalar</h2>
+    <p>Para receber notificações, o iPhone exige que o JARVIS esteja na Tela de Início:</p>
+    <ol>
+      <li>Toque em <b>Compartilhar</b> (o quadrado com a seta) no Safari.</li>
+      <li>Escolha <b>Adicionar à Tela de Início</b> e toque em <b>Adicionar</b>.</li>
+      <li>Abra o JARVIS pelo ícone novo na Tela de Início.</li>
+    </ol>
+  </section>
+
+  <section id="ativar" hidden>
+    <h2>Ativar avisos</h2>
+    <p>No Mac, abra o painel do JARVIS → <b>Celular</b> (ou diga “Jarvis, parear o celular”) e digite aqui o código que aparecer.</p>
+    <input id="codigo" inputmode="numeric" maxlength="6" placeholder="••••••" autocomplete="one-time-code">
+    <button id="botao">Ativar notificações</button>
+    <p id="estado" style="margin:10px 0 0"></p>
+  </section>
+
+  <section id="pronto" hidden>
+    <h2>Conectado</h2>
+    <p class="ok">Os lembretes do JARVIS vão chegar aqui no mesmo momento em que tocam no Mac.</p>
+    <button id="refazer" style="margin-top:6px;background:rgba(255,255,255,.08);color:#f3ecff;border:1px solid var(--borda)">Parear de novo</button>
+  </section>
+
+  <section>
+    <h2>Últimos avisos</h2>
+    <div id="historico"><p class="sub">Nenhum aviso ainda.</p></div>
+  </section>
+</main>
+<script>
+  // Chave pública das notificações (a privada fica só no Mac) e o canal de
+  // pareamento: o celular manda a inscrição com o código mostrado no Mac.
+  const CHAVE = 'BPVgMyYsEY-snAG2z1XuRdfGCtjchZILPa8bdflFaAS95mPovBcFJA7yLLKX_j9fH3YLbdMmSJJi95wKTQ0USOU'
+  const CANAL = 'https://ntfy.sh/jarvis-par-55f7aabe2a8c43a713'
+
+  const $ = (id) => document.getElementById(id)
+  const instalado = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true
+  const suporta = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window
+
+  const chaveBytes = (b64) => {
+    const p = '='.repeat((4 - (b64.length % 4)) % 4)
+    const raw = atob((b64 + p).replace(/-/g, '+').replace(/_/g, '/'))
+    return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)))
+  }
+
+  async function historico() {
+    try {
+      const db = await new Promise((ok, falha) => {
+        const r = indexedDB.open('jarvis', 1)
+        r.onupgradeneeded = () => r.result.createObjectStore('avisos', { keyPath: 'id', autoIncrement: true })
+        r.onsuccess = () => ok(r.result); r.onerror = () => falha(r.error)
+      })
+      const itens = await new Promise((ok) => {
+        const q = db.transaction('avisos').objectStore('avisos').getAll()
+        q.onsuccess = () => ok(q.result || []); q.onerror = () => ok([])
+      })
+      if (!itens.length) return
+      $('historico').innerHTML = ''
+      for (const a of itens.reverse().slice(0, 30)) {
+        const d = document.createElement('div'); d.className = 'aviso'
+        const b = document.createElement('b'); b.textContent = a.corpo || a.titulo
+        const s = document.createElement('small'); s.textContent = new Date(a.em).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+        d.append(b, s); $('historico').append(d)
+      }
+    } catch { /* sem histórico */ }
+  }
+
+  async function ativar() {
+    const codigo = $('codigo').value.replace(/\D/g, '')
+    if (codigo.length !== 6) { $('estado').className = 'erro'; $('estado').textContent = 'Digite os 6 dígitos que aparecem no Mac.'; return }
+    $('botao').disabled = true
+    $('estado').className = ''; $('estado').textContent = 'Pedindo permissão…'
+    try {
+      const perm = await Notification.requestPermission()
+      if (perm !== 'granted') throw new Error('Permissão negada. Libere em Ajustes → Notificações → JARVIS.')
+      const reg = await navigator.serviceWorker.ready
+      let sub = await reg.pushManager.getSubscription()
+      if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: chaveBytes(CHAVE) })
+      $('estado').textContent = 'Enviando para o Mac…'
+      const r = await fetch(CANAL, { method: 'POST', body: JSON.stringify({ codigo, sub: sub.toJSON(), aparelho: navigator.userAgent.slice(0, 120) }) })
+      if (!r.ok) throw new Error('Não consegui falar com o Mac agora. Tente de novo.')
+      localStorage.setItem('pareado', '1')
+      $('estado').className = 'ok'
+      $('estado').textContent = 'Pronto! Em alguns segundos chega uma notificação de teste do Mac.'
+      setTimeout(mostrar, 4000)
+    } catch (err) {
+      $('estado').className = 'erro'; $('estado').textContent = err.message || String(err)
+    } finally {
+      $('botao').disabled = false
+    }
+  }
+
+  function mostrar() {
+    $('instalar').hidden = instalado
+    const pareado = localStorage.getItem('pareado') === '1' && Notification.permission === 'granted'
+    $('ativar').hidden = !instalado || !suporta || pareado
+    $('pronto').hidden = !instalado || !pareado
+    if (instalado && !suporta) { $('instalar').hidden = false; $('instalar').querySelector('p').textContent = 'Este iPhone precisa do iOS 16.4 ou mais novo para receber notificações de web app.' }
+  }
+
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js')
+  navigator.serviceWorker?.addEventListener('message', historico)
+  $('botao').addEventListener('click', ativar)
+  $('refazer').addEventListener('click', () => { localStorage.removeItem('pareado'); mostrar() })
+  mostrar()
+  historico()
+</script>
+</body>
+</html>

@@ -2,9 +2,9 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>JARVIS</title>
-<meta name="theme-color" content="#0a0805">
+<meta name="theme-color" content="#070604">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="JARVIS">
@@ -23,99 +23,415 @@
 <link rel="apple-touch-startup-image" media="(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="abertura-1206x2622.png">
 <link rel="apple-touch-startup-image" media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="abertura-1320x2868.png">
 <style>
-  /* Dourado = JARVIS normal; roxo = modo Mamba (vem em cada aviso do Mac). */
-  :root { --acento: #f2c865; --acento2: #ffe3a3; --brilho: rgba(242,200,101,.45); --fundo: #0a0805; --topo: #2a1d08; --cartao: rgba(255,255,255,.05); --borda: rgba(242,200,101,.25); --texto: #fff6e0; }
-  :root[data-tema="mamba"] { --acento: #c58bff; --acento2: #e0c2ff; --brilho: rgba(197,139,255,.45); --fundo: #0a0714; --topo: #1d1036; --borda: rgba(197,139,255,.25); --texto: #f3ecff; }
-  * { box-sizing: border-box; }
-  body { margin: 0; min-height: 100vh; background: radial-gradient(circle at 50% 0%, var(--topo) 0%, var(--fundo) 60%); color: var(--texto); transition: background .6s, color .6s;
-    font: 16px/1.45 -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
-    padding: max(24px, env(safe-area-inset-top)) 18px max(24px, env(safe-area-inset-bottom)); }
-  main { max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
-  header { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 18px 0 6px; }
-  header img { width: 96px; height: 96px; border-radius: 24px; box-shadow: 0 0 40px var(--brilho); }
-  h1 { margin: 0; font-size: 22px; letter-spacing: .32em; padding-left: .32em; font-weight: 600; }
-  .sub { margin: 0; color: rgba(243,236,255,.6); font-size: 13px; letter-spacing: .08em; }
-  section { background: var(--cartao); border: 1px solid var(--borda); border-radius: 18px; padding: 16px; }
-  h2 { margin: 0 0 10px; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: var(--acento); font-weight: 600; }
-  p { margin: 0 0 10px; }
-  ol { margin: 0; padding-left: 20px; } li { margin-bottom: 6px; }
-  button { width: 100%; border: 0; border-radius: 14px; padding: 14px; font: inherit; font-weight: 600; color: #160b06; background: linear-gradient(180deg, var(--acento2), var(--acento)); }
-  .modo { text-align: center; font-size: 11px; letter-spacing: .3em; color: var(--acento); margin-top: -6px; }
-  button:disabled { opacity: .5; }
-  input { width: 100%; font: 600 26px/1 ui-monospace, Menlo, monospace; letter-spacing: .4em; text-align: center; padding: 16px; min-height: 60px; -webkit-user-select: text; user-select: text; border-radius: 14px;
-    border: 1px solid var(--borda); background: rgba(0,0,0,.3); color: #fff; margin-bottom: 10px; }
+  /* Dourado = JARVIS normal; roxo = modo Mamba (vem do Mac). */
+  :root { --a: #f2c865; --a2: #ffe3a3; --a-rgb: 242,200,101; --fundo: #070604; --topo: #2a1d08; --cartao: rgba(255,255,255,.05); --borda: rgba(242,200,101,.22); --texto: #fff6e0; --sub: rgba(255,246,224,.55); }
+  :root[data-tema="mamba"] { --a: #c58bff; --a2: #e6cbff; --a-rgb: 197,139,255; --fundo: #07040e; --topo: #1d1036; --borda: rgba(197,139,255,.22); --texto: #f3ecff; --sub: rgba(243,236,255,.55); }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; background: var(--fundo); color: var(--texto); font: 16px/1.45 -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif; overscroll-behavior: none; }
+  body { background: radial-gradient(120% 70% at 50% 30%, var(--topo) 0%, var(--fundo) 65%); transition: background .6s; }
+  [hidden] { display: none !important; }
+  .tela { position: fixed; inset: 0; padding: max(18px, env(safe-area-inset-top)) 18px calc(84px + env(safe-area-inset-bottom)); overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  nav { position: fixed; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-around; padding: 8px 8px calc(8px + env(safe-area-inset-bottom)); background: rgba(10,8,5,.82); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-top: 1px solid rgba(255,255,255,.06); z-index: 10; }
+  nav button { flex: 1; background: none; border: 0; color: var(--sub); font: 600 11px/1 inherit; letter-spacing: .08em; padding: 8px 0; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+  nav button svg { width: 22px; height: 22px; }
+  nav button.ativo { color: var(--a); }
+  h2 { margin: 0 0 12px; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: var(--a); font-weight: 600; }
+  section.c { background: var(--cartao); border: 1px solid var(--borda); border-radius: 18px; padding: 16px; margin-bottom: 14px; }
+  .sub { color: var(--sub); font-size: 13px; }
+  button.prim { width: 100%; border: 0; border-radius: 14px; padding: 14px; font: inherit; font-weight: 600; color: #160b06; background: linear-gradient(180deg, var(--a2), var(--a)); }
+  button.sec { width: 100%; border-radius: 14px; padding: 12px; font: inherit; font-weight: 600; color: var(--texto); background: rgba(255,255,255,.06); border: 1px solid var(--borda); margin-top: 8px; }
   .ok { color: #8be0a4; } .erro { color: #ff9d8c; }
+
+  #telaJarvis { display: flex; flex-direction: column; align-items: center; padding-bottom: calc(170px + env(safe-area-inset-bottom)); }
+  .marca { align-self: stretch; display: flex; align-items: center; gap: 10px; }
+  .marca img { width: 30px; height: 30px; border-radius: 8px; }
+  .marca b { letter-spacing: .3em; font-size: 14px; }
+  .marca .modo { margin-left: auto; font-size: 11px; letter-spacing: .25em; color: var(--a); }
+  canvas#anel { width: min(86vw, 380px); height: min(86vw, 380px); margin-top: 4vh; }
+  #estado { margin-top: 6px; font-size: 12px; letter-spacing: .3em; color: var(--a); text-transform: uppercase; min-height: 18px; text-align: center; }
+  #conversa { width: 100%; max-width: 520px; margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .fala { padding: 12px 14px; border-radius: 16px; font-size: 15px; }
+  .fala.voce { align-self: flex-end; background: rgba(var(--a-rgb), .14); border: 1px solid rgba(var(--a-rgb), .25); max-width: 85%; }
+  .fala.jarvis { align-self: flex-start; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08); max-width: 92%; }
+  .controles { position: fixed; left: 0; right: 0; bottom: calc(70px + env(safe-area-inset-bottom)); display: flex; justify-content: center; align-items: center; gap: 22px; padding: 14px; z-index: 5; }
+  #mic { width: 78px; height: 78px; border-radius: 50%; border: 2px solid var(--a); background: radial-gradient(circle, rgba(var(--a-rgb), .25), rgba(0,0,0,.5)); color: var(--a); display: grid; place-items: center; box-shadow: 0 0 26px rgba(var(--a-rgb), .45); transition: transform .15s; }
+  #mic svg { width: 34px; height: 34px; }
+  #mic.gravando { background: radial-gradient(circle, rgba(var(--a-rgb), .55), rgba(0,0,0,.4)); transform: scale(1.08); box-shadow: 0 0 46px rgba(var(--a-rgb), .8); }
+  #teclado { width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--borda); background: rgba(255,255,255,.05); color: var(--texto); display: grid; place-items: center; }
+  #formTexto { position: fixed; left: 14px; right: 14px; bottom: calc(160px + env(safe-area-inset-bottom)); display: flex; gap: 8px; z-index: 6; }
+  #formTexto input { flex: 1; border-radius: 14px; border: 1px solid var(--borda); background: rgba(0,0,0,.6); color: #fff; font: inherit; padding: 12px 14px; }
+  #formTexto button { border: 0; border-radius: 14px; padding: 0 16px; font-weight: 700; color: #160b06; background: var(--a); }
+
+  .fat-topo { display: flex; align-items: center; justify-content: space-between; margin: 4px 0 12px; }
+  .fat-topo button { width: 38px; height: 38px; border-radius: 12px; border: 1px solid var(--borda); background: rgba(255,255,255,.05); color: var(--texto); font-size: 20px; }
+  .fat-topo b { font-size: 15px; letter-spacing: .08em; text-transform: capitalize; }
+  .total { font-size: 38px; font-weight: 700; color: var(--a); letter-spacing: -.02em; margin: 2px 0; font-variant-numeric: tabular-nums; }
+  .linha { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-top: 1px solid rgba(255,255,255,.06); font-size: 14px; }
+  .linha:first-of-type { border-top: 0; }
+  .linha span:last-child { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .linha small { color: var(--sub); }
+  .barras { display: flex; align-items: flex-end; gap: 3px; height: 110px; margin-top: 8px; }
+  .barras i { flex: 1; background: linear-gradient(180deg, var(--a2), var(--a)); border-radius: 3px 3px 1px 1px; min-height: 2px; opacity: .9; }
+  .barras i.hoje { box-shadow: 0 0 10px rgba(var(--a-rgb), .8); }
+  .grade { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .grade div { background: rgba(0,0,0,.25); border-radius: 14px; padding: 12px; }
+  .grade b { display: block; font-size: 18px; font-variant-numeric: tabular-nums; }
+  .grade span { font-size: 12px; color: var(--sub); }
+
+  #codigo { width: 100%; font: 600 26px/1 ui-monospace, Menlo, monospace; letter-spacing: .4em; text-align: center; padding: 16px; min-height: 60px; border-radius: 14px; border: 1px solid var(--borda); background: rgba(0,0,0,.3); color: #fff; margin-bottom: 10px; }
   .aviso { padding: 10px 0; border-top: 1px solid rgba(255,255,255,.07); }
   .aviso:first-child { border-top: 0; }
-  .aviso b { display: block; font-weight: 600; } .aviso small { color: rgba(243,236,255,.5); }
-  [hidden] { display: none !important; }
+  .aviso b { display: block; font-weight: 600; } .aviso small { color: var(--sub); }
+  ol { margin: 0; padding-left: 20px; } li { margin-bottom: 6px; }
 </style>
 </head>
 <body>
-<main>
-  <header>
-    <img src="icone-v2-192.png" alt="">
-    <h1>JARVIS</h1>
-    <p class="sub">avisos no seu iPhone, junto com o Mac</p>
-    <p class="modo" id="modo"></p>
-  </header>
 
-  <section id="instalar" hidden>
+<div class="tela" id="telaJarvis">
+  <div class="marca"><img src="icone-v2-192.png" alt=""><b>JARVIS</b><span class="modo" id="modo"></span></div>
+  <canvas id="anel" width="760" height="760"></canvas>
+  <div id="estado">toque para falar</div>
+  <div id="conversa"></div>
+</div>
+<form id="formTexto" hidden><input id="texto" placeholder="Escreva para o JARVIS…" autocomplete="off" enterkeyhint="send"><button>➤</button></form>
+<div class="controles" id="controles">
+  <button id="teclado" aria-label="Escrever"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2.5" y="6" width="19" height="12" rx="2.5"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg></button>
+  <button id="mic" aria-label="Falar com o JARVIS"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 12v0M8 8v8M12 5v14M16 9v6M20 11v2"/></svg></button>
+  <span style="width:46px"></span>
+</div>
+
+<div class="tela" id="telaFat" hidden>
+  <div class="fat-topo"><button id="mesAnt" aria-label="Mês anterior">‹</button><b id="mesNome"></b><button id="mesProx" aria-label="Próximo mês">›</button></div>
+  <section class="c"><h2>Faturamento</h2><div class="total" id="fatTotal">—</div><div class="sub" id="fatSub"></div><div class="barras" id="fatBarras"></div></section>
+  <section class="c"><h2>Por fonte</h2><div id="fatFontes"></div></section>
+  <section class="c"><h2>Resumo</h2><div class="grade" id="fatGrade"></div></section>
+  <section class="c"><h2>Entradas do mês</h2><div id="fatEntradas"><p class="sub">Carregando…</p></div></section>
+  <p class="sub" id="fatAtualizado" style="text-align:center"></p>
+</div>
+
+<div class="tela" id="telaAvisos" hidden>
+  <section class="c" id="instalar" hidden>
     <h2>Instalar</h2>
-    <p>Para receber notificações, o iPhone exige que o JARVIS esteja na Tela de Início:</p>
-    <ol>
-      <li>Toque em <b>Compartilhar</b> (o quadrado com a seta) no Safari.</li>
-      <li>Escolha <b>Adicionar à Tela de Início</b> e toque em <b>Adicionar</b>.</li>
-      <li>Abra o JARVIS pelo ícone novo na Tela de Início.</li>
-    </ol>
+    <p>Para ouvir sua voz e receber avisos, o JARVIS precisa estar na Tela de Início:</p>
+    <ol><li>Toque em <b>Compartilhar</b> no Safari.</li><li>Escolha <b>Adicionar à Tela de Início</b>.</li><li>Abra o JARVIS pelo ícone novo.</li></ol>
   </section>
-
-  <section id="ativar" hidden>
-    <h2>Ativar avisos</h2>
-    <p>No Mac, abra o painel do JARVIS → <b>Celular</b> (ou diga “Jarvis, parear o celular”) e digite aqui o código que aparecer.</p>
-    <input id="codigo" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="toque para digitar" autocomplete="off" enterkeyhint="done">
-    <button id="botao">Ativar notificações</button>
-    <p id="estado" style="margin:10px 0 0"></p>
+  <section class="c" id="ativar" hidden>
+    <h2>Conectar ao Mac</h2>
+    <p>No Mac, diga “Jarvis, parear o celular” (ou painel → Lembretes → Celular) e digite aqui o código:</p>
+    <input id="codigo" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="toque para digitar" autocomplete="off">
+    <button class="prim" id="botao">Conectar</button>
+    <p id="estadoPar" style="margin:10px 0 0"></p>
   </section>
-
-  <section id="pronto" hidden>
+  <section class="c" id="pronto" hidden>
     <h2>Conectado</h2>
-    <p class="ok">Os lembretes do JARVIS vão chegar aqui no mesmo momento em que tocam no Mac.</p>
-    <button id="refazer" style="margin-top:6px;background:rgba(255,255,255,.08);color:#f3ecff;border:1px solid var(--borda)">Parear de novo</button>
+    <p class="ok">Avisos, voz e faturamento ligados ao seu Mac.</p>
+    <button class="sec" id="refazer">Parear de novo</button>
   </section>
+  <section class="c"><h2>Últimos avisos</h2><div id="historico"><p class="sub">Nenhum aviso ainda.</p></div></section>
+</div>
 
-  <section>
-    <h2>Últimos avisos</h2>
-    <div id="historico"><p class="sub">Nenhum aviso ainda.</p></div>
-  </section>
-</main>
+<nav>
+  <button data-tela="telaJarvis" class="ativo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/></svg>JARVIS</button>
+  <button data-tela="telaFat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>FATURAMENTO</button>
+  <button data-tela="telaAvisos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 0 0 4 0"/></svg>AVISOS</button>
+</nav>
+<audio id="voz" playsinline></audio>
+
 <script>
-  // Chave pública das notificações (a privada fica só no Mac) e o canal de
-  // pareamento: o celular manda a inscrição com o código mostrado no Mac.
-  const CHAVE = 'BPVgMyYsEY-snAG2z1XuRdfGCtjchZILPa8bdflFaAS95mPovBcFJA7yLLKX_j9fH3YLbdMmSJJi95wKTQ0USOU'
-  const CANAL = 'https://ntfy.sh/jarvis-par-55f7aabe2a8c43a713'
+  // Chave pública das notificações (a privada fica só no Mac), canal de
+  // pareamento, canal do endereço do Mac e a chave RSA pública do Mac (a
+  // senha deste aparelho vai cifrada com ela — só o Mac consegue ler).
+  const CHAVE_PUSH = 'BPVgMyYsEY-snAG2z1XuRdfGCtjchZILPa8bdflFaAS95mPovBcFJA7yLLKX_j9fH3YLbdMmSJJi95wKTQ0USOU'
+  const CANAL_PAR = 'https://ntfy.sh/jarvis-par-55f7aabe2a8c43a713'
+  const CANAL_URL = 'https://ntfy.sh/jarvis-url-077718b76260179031'
+  const CHAVE_MAC = {"kty": "RSA", "n": "kf6CplNX5lvsYeoXpNWJ11hRNXovQx7GVl2GM_tztEm02xeZz1c0f-6wduRymHCFQzBOLAFP8wsBscOlpxHi0Fsn-iYFJ7NzD5U_aq_3osrbPJ7wyXl5oP7nFqS7jT1huYRKhkJ-7NFxH-WYGJ1x4RH5YLd88XmKJc62ozXbl5FrmhG-9tuZMJQECF_APu1w7bxAffX8fJivPHHO-h4REnGOXvpgEwq8cn4GAyQSJWtz7dW6oo-KrIb1VgE3opAGzbywQTSyrwig5lT-NKLVgQjPu3dtD0RWEo6uq8F0qj_FXU8sznFYQ1ZbkTN-FrVDq2NxzUq9alMTcuWaGcj0-w", "e": "AQAB"}
 
   const $ = (id) => document.getElementById(id)
   const instalado = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true
-  const suporta = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window
+  const suportaPush = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window
+  const brl = (n) => (Number(n) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+  const MESES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro']
 
-  const chaveBytes = (b64) => {
-    const p = '='.repeat((4 - (b64.length % 4)) % 4)
-    const raw = atob((b64 + p).replace(/-/g, '+').replace(/_/g, '/'))
-    return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)))
+  document.querySelectorAll('nav button').forEach((b) => b.addEventListener('click', () => {
+    document.querySelectorAll('nav button').forEach((x) => x.classList.toggle('ativo', x === b))
+    for (const t of ['telaJarvis', 'telaFat', 'telaAvisos']) $(t).hidden = t !== b.dataset.tela
+    $('controles').hidden = b.dataset.tela !== 'telaJarvis'
+    $('formTexto').hidden = true
+    if (b.dataset.tela === 'telaFat') carregarPainel()
+    if (b.dataset.tela === 'telaAvisos') historico()
+  }))
+
+  /* -------- conexão com o Mac (endereço muda quando o Mac reinicia) -------- */
+  const senha = () => localStorage.getItem('senha')
+  let urlMac = localStorage.getItem('urlMac') || ''
+  async function descobrirUrl() {
+    const r = await fetch(`${CANAL_URL}/json?poll=1&since=24h`, { cache: 'no-store' })
+    const linhas = (await r.text()).trim().split('\n').filter(Boolean)
+    const ultima = linhas.map((l) => { try { return JSON.parse(l) } catch { return null } }).filter((m) => m && m.message).pop()
+    if (!ultima) throw new Error('O Mac não está online agora (JARVIS desligado?).')
+    urlMac = ultima.message.trim()
+    localStorage.setItem('urlMac', urlMac)
+    return urlMac
+  }
+  async function mac(caminho, opcoes = {}, tentativa = 0) {
+    if (!senha()) throw new Error('Conecte este iPhone ao Mac na aba Avisos.')
+    if (!urlMac) await descobrirUrl()
+    try {
+      const r = await fetch(urlMac + caminho, { ...opcoes, headers: { ...(opcoes.headers || {}), authorization: `Bearer ${senha()}` } })
+      if (r.status === 401) throw new Error('Este iPhone não está autorizado — pareie de novo na aba Avisos.')
+      if (r.status >= 500 && r.status !== 502 && tentativa === 0) throw new TypeError('reconectar')
+      return r
+    } catch (err) {
+      if (tentativa === 0 && err instanceof TypeError) { await descobrirUrl(); return mac(caminho, opcoes, 1) }
+      throw err
+    }
   }
 
+  /* -------- tema -------- */
+  function aplicarTema(tema) {
+    if (!tema) return
+    localStorage.setItem('tema', tema)
+    document.documentElement.dataset.tema = tema
+    document.querySelector('meta[name=theme-color]').content = tema === 'mamba' ? '#07040e' : '#070604'
+    $('modo').textContent = tema === 'mamba' ? 'MODO MAMBA' : ''
+  }
+  aplicarTema(localStorage.getItem('tema') || 'normal')
+
+  /* -------- o anel -------- */
+  const cv = $('anel'), ctx = cv.getContext('2d')
+  let nivel = 0, alvoNivel = 0, fase = 'parado'
+  function desenhar(t) {
+    const W = cv.width, c = W / 2, base = W * 0.3
+    ctx.clearRect(0, 0, W, W)
+    const rgb = getComputedStyle(document.documentElement).getPropertyValue('--a-rgb').trim() || '242,200,101'
+    nivel += (alvoNivel - nivel) * 0.18
+    const energia = fase === 'pensando' ? 0.25 + 0.15 * Math.sin(t / 300) : nivel
+    const halo = ctx.createRadialGradient(c, c, base * 0.4, c, c, base * 1.6)
+    halo.addColorStop(0, `rgba(${rgb},${0.10 + energia * 0.2})`); halo.addColorStop(1, 'rgba(0,0,0,0)')
+    ctx.fillStyle = halo; ctx.fillRect(0, 0, W, W)
+    ctx.globalCompositeOperation = 'lighter'
+    for (let k = 0; k < 9; k++) {
+      ctx.beginPath()
+      for (let a = 0; a <= Math.PI * 2 + 0.01; a += 0.04) {
+        const onda = Math.sin(a * (3 + (k % 3)) + t / (900 - k * 40) + k) * (8 + energia * 34) + Math.sin(a * 5 - t / 700 + k * 2) * (4 + energia * 18)
+        const r = base + onda + (k - 4) * 2.2
+        const x = c + Math.cos(a) * r, y = c + Math.sin(a) * r
+        a === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)
+      }
+      ctx.strokeStyle = `rgba(${rgb},${0.18 + energia * 0.25})`
+      ctx.lineWidth = 2.2
+      ctx.shadowColor = `rgba(${rgb},0.9)`; ctx.shadowBlur = 18
+      ctx.stroke()
+    }
+    for (let k = 0; k < 5; k++) {
+      const a = t / (1400 + k * 230) + k * 1.3
+      const r = base + Math.sin(t / 500 + k) * (6 + energia * 20)
+      ctx.beginPath(); ctx.arc(c + Math.cos(a) * r, c + Math.sin(a) * r, 6 + energia * 6, 0, Math.PI * 2)
+      ctx.fillStyle = `rgba(255,255,255,${0.55 + energia * 0.4})`; ctx.shadowBlur = 24; ctx.fill()
+    }
+    ctx.globalCompositeOperation = 'source-over'; ctx.shadowBlur = 0
+    if (!document.hidden) requestAnimationFrame(desenhar)
+  }
+  requestAnimationFrame(desenhar)
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) requestAnimationFrame(desenhar) })
+
+  /* -------- voz -------- */
+  const voz = $('voz')
+  let gravador = null, partes = [], fluxo = null, audioCtx = null, ouvindoDesde = 0, ultimoSom = 0, falou = false
+  const estado = (t) => { $('estado').textContent = t }
+  function balao(quem, texto) {
+    const d = document.createElement('div'); d.className = `fala ${quem}`; d.textContent = texto
+    $('conversa').append(d); while ($('conversa').children.length > 6) $('conversa').firstChild.remove()
+    d.scrollIntoView({ behavior: 'smooth', block: 'end' })
+  }
+  // O iPhone só deixa tocar áudio que começou num toque: destrava aqui.
+  function destravarAudio() {
+    try { voz.src = 'data:audio/mp4;base64,AAAAHGZ0eXBtcDQyAAAAAG1wNDJpc29tAAAACGZyZWUAAAAIbWRhdAAAAAA='; voz.play().catch(() => {}) } catch {}
+    if (!audioCtx) try { audioCtx = new (window.AudioContext || window.webkitAudioContext)() } catch {}
+    audioCtx?.resume?.()
+  }
+  async function comecar() {
+    destravarAudio()
+    try { fluxo = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } }) }
+    catch { estado('libere o microfone em Ajustes'); return }
+    const tipo = MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : ''
+    gravador = new MediaRecorder(fluxo, tipo ? { mimeType: tipo } : undefined)
+    partes = []
+    gravador.ondataavailable = (e) => e.data.size && partes.push(e.data)
+    gravador.onstop = enviarAudio
+    gravador.start()
+    // O nível do microfone anima o anel; para sozinho com 1,4 s de silêncio.
+    const fonte = audioCtx.createMediaStreamSource(fluxo)
+    const an = audioCtx.createAnalyser(); an.fftSize = 512; fonte.connect(an)
+    const buf = new Uint8Array(an.fftSize)
+    ouvindoDesde = ultimoSom = performance.now(); falou = false
+    fase = 'ouvindo'; $('mic').classList.add('gravando'); estado('ouvindo…')
+    const medir = () => {
+      if (!gravador || gravador.state !== 'recording') return
+      an.getByteTimeDomainData(buf)
+      let s = 0; for (const v of buf) s += ((v - 128) / 128) ** 2
+      const rms = Math.sqrt(s / buf.length)
+      alvoNivel = Math.min(1, rms * 6)
+      const agora = performance.now()
+      if (rms > 0.03) { ultimoSom = agora; if (agora - ouvindoDesde > 250) falou = true }
+      if ((falou && agora - ultimoSom > 1400) || agora - ouvindoDesde > 30000) return parar()
+      if (!falou && agora - ouvindoDesde > 8000) return parar(true)
+      requestAnimationFrame(medir)
+    }
+    medir()
+  }
+  function parar(cancelar = false) {
+    if (!gravador) return
+    $('mic').classList.remove('gravando'); alvoNivel = 0
+    if (cancelar) { gravador.onstop = null; estado('toque para falar'); fase = 'parado' }
+    try { gravador.stop() } catch {}
+    fluxo?.getTracks().forEach((t) => t.stop())
+    gravador = null
+  }
+  async function enviarAudio() {
+    const blob = new Blob(partes, { type: partes[0]?.type || 'audio/mp4' })
+    fase = 'pensando'; estado('pensando…')
+    try {
+      const r = await mac('/m/ouvir', { method: 'POST', headers: { 'content-type': blob.type }, body: blob })
+      const j = await r.json()
+      if (j.erro) throw new Error(j.erro)
+      if (j.texto) balao('voce', j.texto)
+      responder(j)
+    } catch (err) { fase = 'parado'; estado(err.message || 'sem conexão') }
+  }
+  async function responder(j) {
+    aplicarTema(j.tema)
+    balao('jarvis', j.resposta || '…')
+    try {
+      const r = await mac('/m/falar', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ texto: j.resposta }) })
+      if (!r.ok) throw new Error()
+      const url = URL.createObjectURL(await r.blob())
+      voz.src = url
+      fase = 'falando'; estado('falando')
+      if (audioCtx && !voz._ligado) {
+        try { const src = audioCtx.createMediaElementSource(voz); const an = audioCtx.createAnalyser(); an.fftSize = 256; src.connect(an); an.connect(audioCtx.destination); voz._an = an; voz._ligado = true } catch {}
+      }
+      const b = new Uint8Array(128)
+      const pulsar = () => { if (fase !== 'falando') return; if (voz._an) { voz._an.getByteFrequencyData(b); let s = 0; for (const v of b) s += v; alvoNivel = Math.min(1, (s / b.length / 255) * 3.2) } else alvoNivel = 0.5; requestAnimationFrame(pulsar) }
+      pulsar()
+      voz.onended = () => { fase = 'parado'; alvoNivel = 0; estado('toque para falar'); URL.revokeObjectURL(url) }
+      await voz.play()
+    } catch { fase = 'parado'; alvoNivel = 0; estado('toque para falar') }
+  }
+  $('mic').addEventListener('click', () => {
+    if (gravador) return parar()
+    if (fase === 'falando') { voz.pause(); fase = 'parado'; alvoNivel = 0 }
+    comecar()
+  })
+  $('teclado').addEventListener('click', () => { $('formTexto').hidden = !$('formTexto').hidden; if (!$('formTexto').hidden) $('texto').focus() })
+  $('formTexto').addEventListener('submit', async (e) => {
+    e.preventDefault()
+    const t = $('texto').value.trim(); if (!t) return
+    destravarAudio()
+    $('texto').value = ''; balao('voce', t); fase = 'pensando'; estado('pensando…')
+    try {
+      const r = await mac('/m/perguntar', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ texto: t }) })
+      const j = await r.json(); if (j.erro) throw new Error(j.erro)
+      responder(j)
+    } catch (err) { fase = 'parado'; estado(err.message || 'sem conexão') }
+  })
+
+  /* -------- faturamento -------- */
+  let painel = null
+  const hojeIso = () => new Date().toLocaleDateString('sv-SE')
+  let mesSel = hojeIso().slice(0, 7)
+  async function carregarPainel() {
+    try {
+      const r = await mac('/m/painel'); painel = await r.json(); aplicarTema(painel.tema)
+      $('fatAtualizado').textContent = 'atualizado ' + new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+      mostrarPainel()
+    } catch (err) { $('fatEntradas').innerHTML = ''; const p = document.createElement('p'); p.className = 'erro'; p.textContent = err.message; $('fatEntradas').append(p) }
+  }
+  function mostrarPainel() {
+    if (!painel) return
+    const [y, m] = mesSel.split('-').map(Number)
+    $('mesNome').textContent = `${MESES[m - 1]} ${y}`
+    const ls = painel.data.lancamentos || []
+    const doMes = ls.filter((l) => l.tipo === 'entrada' && l.status === 'pago' && l.data.startsWith(mesSel)).sort((a, b) => b.data.localeCompare(a.data))
+    const projetos = doMes.reduce((a, l) => a + l.valor, 0)
+    const atual = mesSel === hojeIso().slice(0, 7)
+    const info = atual ? (painel.saas || []).reduce((a, x) => a + (x.infoMes?.receita || 0), 0) : 0
+    const assin = atual ? (painel.saas || []).reduce((a, x) => a + (x.receitaMes?.BRL || 0), 0) : 0
+    $('fatTotal').textContent = brl(projetos + info + assin)
+    const ant = new Date(y, m - 2, 1); const pAnt = `${ant.getFullYear()}-${String(ant.getMonth() + 1).padStart(2, '0')}`
+    const vAnt = ls.filter((l) => l.tipo === 'entrada' && l.status === 'pago' && l.data.startsWith(pAnt)).reduce((a, l) => a + l.valor, 0)
+    $('fatSub').textContent = vAnt ? `${projetos >= vAnt ? '▲' : '▼'} ${Math.abs(Math.round((projetos - vAnt) / vAnt * 100))}% nos projetos vs. ${MESES[ant.getMonth()]}` : ''
+    const dias = new Date(y, m, 0).getDate(); const porDia = Array(dias).fill(0)
+    for (const l of doMes) porDia[Number(l.data.slice(8, 10)) - 1] += l.valor
+    const max = Math.max(1, ...porDia); const hd = atual ? Number(hojeIso().slice(8, 10)) : 0
+    $('fatBarras').innerHTML = porDia.map((v, i) => `<i class="${i + 1 === hd ? 'hoje' : ''}" style="height:${Math.max(2, v / max * 100)}%"></i>`).join('')
+    $('fatFontes').innerHTML = ''
+    for (const [nome, v] of [['Projetos', projetos], ['Infoprodutos', info], ['Assinaturas', assin]]) {
+      const d = document.createElement('div'); d.className = 'linha'
+      const a = document.createElement('span'); a.textContent = nome
+      const b = document.createElement('span'); b.textContent = atual || nome === 'Projetos' ? brl(v) : '—'
+      d.append(a, b); $('fatFontes').append(d)
+    }
+    const r = painel.resumo || {}
+    const vendasHoje = (painel.saas || []).reduce((a, x) => a + (x.infoHoje?.vendas || 0) + (x.vendasHoje || 0), 0)
+    const infoHoje = (painel.saas || []).reduce((a, x) => a + (x.infoHoje?.receita || 0), 0)
+    $('fatGrade').innerHTML = ''
+    for (const [v, rot] of [[brl(r.aReceber), 'a receber'], [String((r.atrasados || []).length), 'atrasado(s)'], [String(vendasHoje), 'venda(s) hoje'], [brl(infoHoje), 'infoprodutos hoje']]) {
+      const d = document.createElement('div'); const b = document.createElement('b'); b.textContent = v; const s = document.createElement('span'); s.textContent = rot; d.append(b, s); $('fatGrade').append(d)
+    }
+    $('fatEntradas').innerHTML = ''
+    if (!doMes.length) { const p = document.createElement('p'); p.className = 'sub'; p.textContent = 'Nenhuma entrada neste mês.'; $('fatEntradas').append(p) }
+    for (const l of doMes) {
+      const d = document.createElement('div'); d.className = 'linha'
+      const a = document.createElement('span'); const sm = document.createElement('small'); sm.textContent = `${l.data.slice(8, 10)}/${l.data.slice(5, 7)} `; a.append(sm, document.createTextNode(l.descricao || l.projeto || 'entrada'))
+      const b = document.createElement('span'); b.className = 'ok'; b.textContent = brl(l.valor)
+      d.append(a, b); $('fatEntradas').append(d)
+    }
+  }
+  const mudarMes = (n) => { const [y, m] = mesSel.split('-').map(Number); const d = new Date(y, m - 1 + n, 1); mesSel = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; mostrarPainel() }
+  $('mesAnt').addEventListener('click', () => mudarMes(-1))
+  $('mesProx').addEventListener('click', () => mudarMes(1))
+
+  /* -------- pareamento + avisos -------- */
+  const chaveBytes = (b64) => { const p = '='.repeat((4 - (b64.length % 4)) % 4); const raw = atob((b64 + p).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from([...raw].map((c) => c.charCodeAt(0))) }
+  async function senhaCifrada(s) {
+    const chave = await crypto.subtle.importKey('jwk', { ...CHAVE_MAC, alg: 'RSA-OAEP-256', ext: true, key_ops: ['encrypt'] }, { name: 'RSA-OAEP', hash: 'SHA-256' }, false, ['encrypt'])
+    const c = await crypto.subtle.encrypt({ name: 'RSA-OAEP' }, chave, new TextEncoder().encode(s))
+    return btoa(String.fromCharCode(...new Uint8Array(c)))
+  }
+  async function conectar() {
+    const codigo = $('codigo').value.replace(/\D/g, '')
+    if (codigo.length !== 6) { $('estadoPar').className = 'erro'; $('estadoPar').textContent = 'Digite os 6 dígitos que aparecem no Mac.'; return }
+    $('botao').disabled = true; $('estadoPar').className = ''; $('estadoPar').textContent = 'Pedindo permissão…'
+    try {
+      const perm = await Notification.requestPermission()
+      if (perm !== 'granted') throw new Error('Permissão de notificação negada. Libere em Ajustes → Notificações → JARVIS.')
+      const reg = await navigator.serviceWorker.ready
+      let sub = await reg.pushManager.getSubscription()
+      if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: chaveBytes(CHAVE_PUSH) })
+      const nova = Array.from(crypto.getRandomValues(new Uint8Array(32)), (b) => b.toString(16).padStart(2, '0')).join('')
+      $('estadoPar').textContent = 'Enviando para o Mac…'
+      const r = await fetch(CANAL_PAR, { method: 'POST', body: JSON.stringify({ codigo, sub: sub.toJSON(), aparelho: navigator.userAgent.slice(0, 120), senha: await senhaCifrada(nova) }) })
+      if (!r.ok) throw new Error('Não consegui falar com o Mac agora. Tente de novo.')
+      localStorage.setItem('senha', nova); localStorage.setItem('pareado', '1'); localStorage.removeItem('urlMac'); urlMac = ''
+      $('estadoPar').className = 'ok'; $('estadoPar').textContent = 'Pronto! Em alguns segundos chega uma notificação do Mac.'
+      setTimeout(mostrarConexao, 3500)
+    } catch (err) { $('estadoPar').className = 'erro'; $('estadoPar').textContent = err.message || String(err) }
+    finally { $('botao').disabled = false }
+  }
+  function mostrarConexao() {
+    $('instalar').hidden = instalado
+    const ok = localStorage.getItem('pareado') === '1' && !!senha() && (!suportaPush || Notification.permission === 'granted')
+    $('ativar').hidden = !instalado || ok
+    $('pronto').hidden = !instalado || !ok
+    if (!ok) document.querySelector('nav button[data-tela=telaAvisos]').click()
+  }
   async function historico() {
     try {
-      const db = await new Promise((ok, falha) => {
-        const r = indexedDB.open('jarvis', 1)
-        r.onupgradeneeded = () => r.result.createObjectStore('avisos', { keyPath: 'id', autoIncrement: true })
-        r.onsuccess = () => ok(r.result); r.onerror = () => falha(r.error)
-      })
-      const itens = await new Promise((ok) => {
-        const q = db.transaction('avisos').objectStore('avisos').getAll()
-        q.onsuccess = () => ok(q.result || []); q.onerror = () => ok([])
-      })
+      const db = await new Promise((ok, falha) => { const r = indexedDB.open('jarvis', 1); r.onupgradeneeded = () => r.result.createObjectStore('avisos', { keyPath: 'id', autoIncrement: true }); r.onsuccess = () => ok(r.result); r.onerror = () => falha(r.error) })
+      const itens = await new Promise((ok) => { const q = db.transaction('avisos').objectStore('avisos').getAll(); q.onsuccess = () => ok(q.result || []); q.onerror = () => ok([]) })
+      const ultimoTema = itens.filter((a) => a.tema).pop()?.tema
+      if (ultimoTema) aplicarTema(ultimoTema)
       if (!itens.length) return
       $('historico').innerHTML = ''
       for (const a of itens.reverse().slice(0, 30)) {
@@ -126,63 +442,15 @@
       }
     } catch { /* sem histórico */ }
   }
-
-  async function ativar() {
-    const codigo = $('codigo').value.replace(/\D/g, '')
-    if (codigo.length !== 6) { $('estado').className = 'erro'; $('estado').textContent = 'Digite os 6 dígitos que aparecem no Mac.'; return }
-    $('botao').disabled = true
-    $('estado').className = ''; $('estado').textContent = 'Pedindo permissão…'
-    try {
-      const perm = await Notification.requestPermission()
-      if (perm !== 'granted') throw new Error('Permissão negada. Libere em Ajustes → Notificações → JARVIS.')
-      const reg = await navigator.serviceWorker.ready
-      let sub = await reg.pushManager.getSubscription()
-      if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: chaveBytes(CHAVE) })
-      $('estado').textContent = 'Enviando para o Mac…'
-      const r = await fetch(CANAL, { method: 'POST', body: JSON.stringify({ codigo, sub: sub.toJSON(), aparelho: navigator.userAgent.slice(0, 120) }) })
-      if (!r.ok) throw new Error('Não consegui falar com o Mac agora. Tente de novo.')
-      localStorage.setItem('pareado', '1')
-      $('estado').className = 'ok'
-      $('estado').textContent = 'Pronto! Em alguns segundos chega uma notificação de teste do Mac.'
-      setTimeout(mostrar, 4000)
-    } catch (err) {
-      $('estado').className = 'erro'; $('estado').textContent = err.message || String(err)
-    } finally {
-      $('botao').disabled = false
-    }
-  }
-
-  function mostrar() {
-    $('instalar').hidden = instalado
-    const pareado = localStorage.getItem('pareado') === '1' && Notification.permission === 'granted'
-    $('ativar').hidden = !instalado || !suporta || pareado
-    $('pronto').hidden = !instalado || !pareado
-    if (instalado && !suporta) { $('instalar').hidden = false; $('instalar').querySelector('p').textContent = 'Este iPhone precisa do iOS 16.4 ou mais novo para receber notificações de web app.' }
-  }
-
-  /** Tema do modo atual do JARVIS no Mac (o service worker guarda o último). */
-  async function aplicarTema() {
-    let tema = 'normal'
-    try {
-      const db = await new Promise((ok, falha) => { const r = indexedDB.open('jarvis', 1); r.onupgradeneeded = () => r.result.createObjectStore('avisos', { keyPath: 'id', autoIncrement: true }); r.onsuccess = () => ok(r.result); r.onerror = () => falha(r.error) })
-      const ultimo = await new Promise((ok) => { const q = db.transaction('avisos').objectStore('avisos').getAll(); q.onsuccess = () => ok((q.result || []).filter((a) => a.tema).pop()); q.onerror = () => ok(null) })
-      if (ultimo?.tema) tema = ultimo.tema
-    } catch { /* padrão dourado */ }
-    document.documentElement.dataset.tema = tema
-    document.querySelector('meta[name=theme-color]').content = tema === 'mamba' ? '#0a0714' : '#0a0805'
-    $('modo').textContent = tema === 'mamba' ? 'MODO MAMBA' : ''
-  }
-
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js')
-  navigator.serviceWorker?.addEventListener('message', () => { historico(); aplicarTema() })
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) { historico(); aplicarTema() } })
-  aplicarTema()
-  $('botao').addEventListener('click', ativar)
-  // Um toque em qualquer lugar do cartão abre o teclado no campo do código.
+  $('botao').addEventListener('click', conectar)
   $('ativar').addEventListener('click', (e) => { if (e.target.tagName !== 'BUTTON') $('codigo').focus() })
   $('codigo').addEventListener('input', () => { $('codigo').value = $('codigo').value.replace(/\D/g, '').slice(0, 6) })
-  $('refazer').addEventListener('click', () => { localStorage.removeItem('pareado'); mostrar() })
-  mostrar()
+  $('refazer').addEventListener('click', () => { localStorage.removeItem('pareado'); localStorage.removeItem('senha'); mostrarConexao() })
+
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js')
+  navigator.serviceWorker?.addEventListener('message', historico)
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { historico(); if (!$('telaFat').hidden) carregarPainel() } })
+  mostrarConexao()
   historico()
 </script>
 </body>

@@ -1,6 +1,6 @@
 // Service worker do web app do JARVIS: recebe o push vindo do Mac, mostra a
 // notificação com o ícone do JARVIS e guarda no histórico (IndexedDB).
-const VERSAO = 'jarvis-app-v3'
+const VERSAO = 'jarvis-app-v4'
 
 self.addEventListener('install', () => self.skipWaiting())
 self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()))

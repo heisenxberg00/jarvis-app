@@ -28,7 +28,7 @@
   ol { margin: 0; padding-left: 20px; } li { margin-bottom: 6px; }
   button { width: 100%; border: 0; border-radius: 14px; padding: 14px; font: inherit; font-weight: 600; color: #160b26; background: linear-gradient(180deg, #e0c2ff, var(--acento)); }
   button:disabled { opacity: .5; }
-  input { width: 100%; font: 600 26px/1 ui-monospace, Menlo, monospace; letter-spacing: .4em; text-align: center; padding: 14px; border-radius: 14px;
+  input { width: 100%; font: 600 26px/1 ui-monospace, Menlo, monospace; letter-spacing: .4em; text-align: center; padding: 16px; min-height: 60px; -webkit-user-select: text; user-select: text; border-radius: 14px;
     border: 1px solid var(--borda); background: rgba(0,0,0,.3); color: #fff; margin-bottom: 10px; }
   .ok { color: #8be0a4; } .erro { color: #ff9d8c; }
   .aviso { padding: 10px 0; border-top: 1px solid rgba(255,255,255,.07); }
@@ -58,7 +58,7 @@
   <section id="ativar" hidden>
     <h2>Ativar avisos</h2>
     <p>No Mac, abra o painel do JARVIS → <b>Celular</b> (ou diga “Jarvis, parear o celular”) e digite aqui o código que aparecer.</p>
-    <input id="codigo" inputmode="numeric" maxlength="6" placeholder="••••••" autocomplete="one-time-code">
+    <input id="codigo" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="toque para digitar" autocomplete="off" enterkeyhint="done">
     <button id="botao">Ativar notificações</button>
     <p id="estado" style="margin:10px 0 0"></p>
   </section>
@@ -148,6 +148,9 @@
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js')
   navigator.serviceWorker?.addEventListener('message', historico)
   $('botao').addEventListener('click', ativar)
+  // Um toque em qualquer lugar do cartão abre o teclado no campo do código.
+  $('ativar').addEventListener('click', (e) => { if (e.target.tagName !== 'BUTTON') $('codigo').focus() })
+  $('codigo').addEventListener('input', () => { $('codigo').value = $('codigo').value.replace(/\D/g, '').slice(0, 6) })
   $('refazer').addEventListener('click', () => { localStorage.removeItem('pareado'); mostrar() })
   mostrar()
   historico()
